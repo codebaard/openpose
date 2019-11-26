@@ -3,112 +3,120 @@
 #include <string>
 #include <vector>
 
-using namespace rapidjson;
-
-class rapidJSON
-{
-public:
-	rapidJSON();
-	~rapidJSON();
-
-	void createJSONstr();
-};
+//using namespace rapidjson;
 
 
-//class Person {
-//public:
-//	Person(const std::string& name, unsigned age) : name_(name), age_(age) {}
-//	Person(const Person& rhs) : name_(rhs.name_), age_(rhs.age_) {}
-//	virtual ~Person();
+//class capture_area {
+//	capture_area(unsigned width, unsigned height) : width_(width), height_(height) {}
+//	capture_area(const capture_area& rhs) : width_(rhs.width_), height_(rhs.height_) {}
 //
-//	Person& operator=(const Person& rhs) {
-//		name_ = rhs.name_;
-//		age_ = rhs.age_;
+//	capture_area& operator=(const capture_area& rhs) {
+//		width_ = rhs.width_;
+//		height_ = rhs.height_;
 //		return *this;
 //	}
 //
 //protected:
 //	template <typename Writer>
 //	void Serialize(Writer& writer) const {
-//		// This base class just write out name-value pairs, without wrapping within an object.
-//		writer.String("name");
-//#if RAPIDJSON_HAS_STDSTRING
-//		writer.String(name_);
-//#else
-//		writer.String(name_.c_str(), static_cast<SizeType>(name_.length())); // Supplying length of string is faster.
-//#endif
-//		writer.String("age");
-//		writer.Uint(age_);
+//		writer.String("width");
+//		writer.Uint(width);
+//
+//		writer.String("height");
+//		writer.Uint(height);
+//
+//		writer.EndObject();
 //	}
 //
 //private:
-//	std::string name_;
-//	unsigned age_;
+//	unsigned width_;
+//	unsigned height_;
 //};
 
+class keypoint {
+public:
+	keypoint(const std::string& designator, unsigned x, unsigned y, double score) : designator_(designator), x_(x), y_(y), score_(score) {}
+	keypoint(const keypoint& rhs) : designator_(rhs.designator_), x_(rhs.x_), y_(rhs.y_), score_(rhs.score_) {}
+	//keypoint(std::string & designator, unsigned x, unsigned y, float score);
 
-class capture_area {
-	capture_area(unsigned width, unsigned height) : width_(width), height_(height) {}
-	capture_area(const capture_area& rhs) : width_(rhs.width_), height_(rhs.height_) {}
-
-	capture_area& operator=(const capture_area& rhs) {
-		width_ = rhs.width_;
-		height_ = rhs.height_;
-		return *this;
+	keypoint& operator=(const keypoint& rhs) {
+		designator_ = rhs.designator_;
+		x_ = rhs.x_;
+		y_ = rhs.y_;
+		score_ = rhs.score_;
 	}
 
-protected:
 	template <typename Writer>
 	void Serialize(Writer& writer) const {
-		writer.String("width");
-		writer.Uint(width);
+		writer.StartObject(); //prettyWriter
 
-		writer.String("height");
-		writer.Uint(height);
+		writer.String("keypoint");
+		//writer.String(designator_);
+
+#if RAPIDJSON_HAS_STDSTRING
+		writer.String(designator_);
+#else
+		writer.String(designator_.c_str(), static_cast<SizeType>(designator_.length()));
+#endif
+
+		writer.String("x");
+		writer.Uint(x_);
+
+		writer.String("y");
+		writer.Uint(y_);
+
+		writer.String("score");
+		writer.Double(score_);
+
+		writer.EndObject();
 	}
 
 private:
-	unsigned width_;
-	unsigned height_;
+	std::string designator_;
+	unsigned x_;
+	unsigned y_;
+	double score_;
 };
+
 
 class persons {
-	persons()
+public:
+	persons(const std::string& designator) : designator_(designator) {}
+	//persons(const persons& rhs) : designator_(rhs.designator_), keypoints_(rhs.keypoints_) {}
+	persons(const persons& rhs) : designator_(rhs.designator_) {}
+	//persons(std::string designator);
 
-};
+	persons& operator=(const persons& rhs) {
+		designator_ = rhs.designator_;
+	}
 
-class left_hand {
+	void AddKeypoint(const keypoint& keypoint) {
+		keypoints_.push_back(keypoint);
 
-};
+	}
+		template <typename Writer>
+		void Serialize(Writer& writer) const {
+			writer.StartObject(); //prettyWriter
 
-class right_hand {
+			writer.String("person");
+			//writer.String(designator_);
 
-};
+#if RAPIDJSON_HAS_STDSTRING
+			writer.String(designator_);
+#else
+			writer.String(designator_.c_str(), static_cast<SizeType>(designator_.length()));
+#endif
 
-class root {
+			writer.String(("keypoints"));
+			writer.StartArray();
+			for (std::vector<keypoint>::const_iterator keypointItr = keypoints_.begin(); keypointItr != keypoints_.end(); ++keypointItr)
+				keypointItr->Serialize(writer);
+			writer.EndArray();
 
-};
+			writer.EndObject();
+		}
 
-class left_shoulder {
-
-};
-
-class right_shoulder {
-
-};
-
-class left_ankle {
-
-};
-
-class right_ankle {
-
-};
-
-class x {
-
-};
-
-class y {
-
+private:
+	std::string designator_;
+	std::vector<keypoint> keypoints_;
 };

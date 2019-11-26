@@ -12,6 +12,7 @@
 #include <openpose/headers.hpp>
 
 #include "rapidJSON.hpp"
+#include "tcpsocket.hpp"
 #include <cstdio>
 #include <string>
 #include <vector>
@@ -21,6 +22,8 @@
 // Display
 DEFINE_bool(no_display, false,
 	"Enable to disable the visual display.");
+
+using namespace rapidjson;
 
 // This worker will just read and return all the jpg files in a directory
 class WUserOutput : public op::WorkerConsumer<std::shared_ptr<std::vector<std::shared_ptr<op::Datum>>>>
@@ -35,10 +38,32 @@ public:
 			//modification to send json of stream 
 			//J. Neudecker 25.11.2019
 
-			std::vector<rapidJSON> json;
+			tcpsocket socket_;
 
+			socket_.init();
+
+			std::string sendstr;
+
+			std::vector<persons> kpsData; //keypoint data
+
+			StringBuffer sb;
+			PrettyWriter<StringBuffer> writer(sb);
 			
+			//kpsData.push_back(persons("person0"));
+			//kpsData.back().AddKeypoint(keypoint("left_hand", 100, 150, 0.5));
+			//kpsData.back().AddKeypoint(keypoint("right_hand", 100, 150, 0.5));
+			//kpsData.back().AddKeypoint(keypoint("root", 100, 150, 0.5));
+			//kpsData.back().AddKeypoint(keypoint("left_shoulder", 100, 150, 0.5));
+			//kpsData.back().AddKeypoint(keypoint("right_shoulder", 100, 150, 0.5));
+			//kpsData.back().AddKeypoint(keypoint("left_ankle", 100, 150, 0.5));
+			//kpsData.back().AddKeypoint(keypoint("right_ankle", 100, 150, 0.5));
 
+			//writer.StartArray();
+			//for (std::vector<persons>::const_iterator personsItr = kpsData.begin(); personsItr != kpsData.end(); ++personsItr)
+			//	personsItr->Serialize(writer);
+			//writer.EndArray();
+
+			//puts(sb.GetString());
 
 			// User's displaying/saving/other processing here
 				// datumPtr->cvOutputData: rendered frame with pose or heatmaps
@@ -46,50 +71,83 @@ public:
 			if (datumsPtr != nullptr && !datumsPtr->empty())
 			{
 				// Show in command line the resulting pose keypoints for body, face and hands
-				op::opLog("\nKeypoints:");
+				//op::opLog("\nKeypoints:");
 				// Accesing each element of the keypoints
 				const auto& poseKeypoints = datumsPtr->at(0)->poseKeypoints;
-				op::opLog("Person pose keypoints:");
+				//op::opLog("Person pose keypoints:");
 				for (auto person = 0; person < poseKeypoints.getSize(0); person++)
 				{
-					op::opLog("Person " + std::to_string(person) + " (x, y, score):");
-					for (auto bodyPart = 0; bodyPart < poseKeypoints.getSize(1); bodyPart++)
-					{
-						std::string valueToPrint;
-						for (auto xyscore = 0; xyscore < poseKeypoints.getSize(2); xyscore++)
-						{
-							valueToPrint += std::to_string(poseKeypoints[{person, bodyPart, xyscore}]) + " ";
-						}
-						op::opLog(valueToPrint);
-					}
+					//op::opLog("Person " + std::to_string(person) + " (x, y, score):");
+
+					//new stuff!
+					kpsData.push_back(persons("Person " + std::to_string(person))); 
+
+					kpsData.back().AddKeypoint(keypoint("left_hand", poseKeypoints[{person, 4, 0}], poseKeypoints[{person, 4, 1}], poseKeypoints[{person, 4, 2}]));
+					kpsData.back().AddKeypoint(keypoint("right_hand", poseKeypoints[{person, 7, 0}], poseKeypoints[{person, 7, 1}], poseKeypoints[{person, 7, 2}]));
+					kpsData.back().AddKeypoint(keypoint("root", poseKeypoints[{person, 8, 0}], poseKeypoints[{person, 8, 1}], poseKeypoints[{person, 8, 2}]));
+					kpsData.back().AddKeypoint(keypoint("left_shoulder", poseKeypoints[{person, 2, 0}], poseKeypoints[{person, 2, 1}], poseKeypoints[{person, 2, 2}]));
+					kpsData.back().AddKeypoint(keypoint("right_shoulder", poseKeypoints[{person, 5, 0}], poseKeypoints[{person, 5, 1}], poseKeypoints[{person, 5, 2}]));
+					kpsData.back().AddKeypoint(keypoint("left_ankle", poseKeypoints[{person, 11, 0}], poseKeypoints[{person, 11, 1}], poseKeypoints[{person, 11, 2}]));
+					kpsData.back().AddKeypoint(keypoint("right_ankle", poseKeypoints[{person, 14, 0}], poseKeypoints[{person, 14, 1}], poseKeypoints[{person, 14, 2}]));
+
+					//kpsData.back().AddKeypoint(keypoint("right_hand", 100, 150, 0.5));
+					//kpsData.back().AddKeypoint(keypoint("root", 100, 150, 0.5));
+					//kpsData.back().AddKeypoint(keypoint("left_shoulder", 100, 150, 0.5));
+					//kpsData.back().AddKeypoint(keypoint("right_shoulder", 100, 150, 0.5));
+					//kpsData.back().AddKeypoint(keypoint("left_ankle", 100, 150, 0.5));
+					//kpsData.back().AddKeypoint(keypoint("right_ankle", 100, 150, 0.5));
+
+					//for (auto bodyPart = 0; bodyPart < poseKeypoints.getSize(1); bodyPart++)
+					//{
+					//	std::string valueToPrint;
+					//	for (auto xyscore = 0; xyscore < poseKeypoints.getSize(2); xyscore++)
+					//	{
+					//		valueToPrint += std::to_string(poseKeypoints[{person, bodyPart, xyscore}]) + " ";
+					//	}
+					//	
+					//	op::opLog(valueToPrint);
+					//}
 				}
-				op::opLog(" ");
+
+				// new stuff
+				writer.StartArray();
+				for (std::vector<persons>::const_iterator personsItr = kpsData.begin(); personsItr != kpsData.end(); ++personsItr)
+					personsItr->Serialize(writer);
+				writer.EndArray();
+
+				sendstr = sb.GetString();
+				socket_.sendmsg(sendstr.c_str());
+
+				//puts(sb.GetString());
+				// end new stuff
+
+				//op::opLog(" ");
 				// Alternative: just getting std::string equivalent
-				op::opLog("Face keypoints: " + datumsPtr->at(0)->faceKeypoints.toString());
-				op::opLog("Left hand keypoints: " + datumsPtr->at(0)->handKeypoints[0].toString());
-				op::opLog("Right hand keypoints: " + datumsPtr->at(0)->handKeypoints[1].toString());
+				//op::opLog("Face keypoints: " + datumsPtr->at(0)->faceKeypoints.toString());
+				//op::opLog("Left hand keypoints: " + datumsPtr->at(0)->handKeypoints[0].toString());
+				//op::opLog("Right hand keypoints: " + datumsPtr->at(0)->handKeypoints[1].toString());
 				// Heatmaps
-				const auto& poseHeatMaps = datumsPtr->at(0)->poseHeatMaps;
-				if (!poseHeatMaps.empty())
-				{
-					op::opLog("Pose heatmaps size: [" + std::to_string(poseHeatMaps.getSize(0)) + ", "
-						+ std::to_string(poseHeatMaps.getSize(1)) + ", "
-						+ std::to_string(poseHeatMaps.getSize(2)) + "]");
-					const auto& faceHeatMaps = datumsPtr->at(0)->faceHeatMaps;
-					op::opLog("Face heatmaps size: [" + std::to_string(faceHeatMaps.getSize(0)) + ", "
-						+ std::to_string(faceHeatMaps.getSize(1)) + ", "
-						+ std::to_string(faceHeatMaps.getSize(2)) + ", "
-						+ std::to_string(faceHeatMaps.getSize(3)) + "]");
-					const auto& handHeatMaps = datumsPtr->at(0)->handHeatMaps;
-					op::opLog("Left hand heatmaps size: [" + std::to_string(handHeatMaps[0].getSize(0)) + ", "
-						+ std::to_string(handHeatMaps[0].getSize(1)) + ", "
-						+ std::to_string(handHeatMaps[0].getSize(2)) + ", "
-						+ std::to_string(handHeatMaps[0].getSize(3)) + "]");
-					op::opLog("Right hand heatmaps size: [" + std::to_string(handHeatMaps[1].getSize(0)) + ", "
-						+ std::to_string(handHeatMaps[1].getSize(1)) + ", "
-						+ std::to_string(handHeatMaps[1].getSize(2)) + ", "
-						+ std::to_string(handHeatMaps[1].getSize(3)) + "]");
-				}
+				//const auto& poseHeatMaps = datumsPtr->at(0)->poseHeatMaps;
+				//if (!poseHeatMaps.empty())
+				//{
+				//	op::opLog("Pose heatmaps size: [" + std::to_string(poseHeatMaps.getSize(0)) + ", "
+				//		+ std::to_string(poseHeatMaps.getSize(1)) + ", "
+				//		+ std::to_string(poseHeatMaps.getSize(2)) + "]");
+				//	const auto& faceHeatMaps = datumsPtr->at(0)->faceHeatMaps;
+				//	op::opLog("Face heatmaps size: [" + std::to_string(faceHeatMaps.getSize(0)) + ", "
+				//		+ std::to_string(faceHeatMaps.getSize(1)) + ", "
+				//		+ std::to_string(faceHeatMaps.getSize(2)) + ", "
+				//		+ std::to_string(faceHeatMaps.getSize(3)) + "]");
+				//	const auto& handHeatMaps = datumsPtr->at(0)->handHeatMaps;
+				//	op::opLog("Left hand heatmaps size: [" + std::to_string(handHeatMaps[0].getSize(0)) + ", "
+				//		+ std::to_string(handHeatMaps[0].getSize(1)) + ", "
+				//		+ std::to_string(handHeatMaps[0].getSize(2)) + ", "
+				//		+ std::to_string(handHeatMaps[0].getSize(3)) + "]");
+				//	op::opLog("Right hand heatmaps size: [" + std::to_string(handHeatMaps[1].getSize(0)) + ", "
+				//		+ std::to_string(handHeatMaps[1].getSize(1)) + ", "
+				//		+ std::to_string(handHeatMaps[1].getSize(2)) + ", "
+				//		+ std::to_string(handHeatMaps[1].getSize(3)) + "]");
+				//}
 
 				// Display results (if enabled)
 				if (!FLAGS_no_display)
