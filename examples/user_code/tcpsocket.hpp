@@ -28,7 +28,7 @@ public:
 		struct addrinfo *result = NULL,
 			*ptr = NULL,
 			hints;
-		const char *sendbuf = "this is a test";
+		//const char *sendbuf = "this is a test";
 		char recvbuf[DEFAULT_BUFLEN];
 		//int iResult;
 		int recvbuflen = DEFAULT_BUFLEN;
@@ -131,8 +131,8 @@ public:
 
 	}
 
-	void sendmsg(const char* sendbuf) {
-		iResult = send(ConnectSocket, sendbuf, (int)strlen(sendbuf), 0);
+	void sendmsg(const char* sendmsg) {
+		iResult = send(ConnectSocket, sendmsg, (int)strlen(sendmsg), 0);
 	}
 
 	private:

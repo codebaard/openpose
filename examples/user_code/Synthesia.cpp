@@ -25,6 +25,8 @@ DEFINE_bool(no_display, false,
 
 using namespace rapidjson;
 
+tcpsocket socket_;
+
 // This worker will just read and return all the jpg files in a directory
 class WUserOutput : public op::WorkerConsumer<std::shared_ptr<std::vector<std::shared_ptr<op::Datum>>>>
 {
@@ -37,10 +39,6 @@ public:
 		{
 			//modification to send json of stream 
 			//J. Neudecker 25.11.2019
-
-			tcpsocket socket_;
-
-			socket_.init();
 
 			std::string sendstr;
 
@@ -115,10 +113,11 @@ public:
 					personsItr->Serialize(writer);
 				writer.EndArray();
 
+				puts(sb.GetString());
+
 				sendstr = sb.GetString();
 				socket_.sendmsg(sendstr.c_str());
 
-				//puts(sb.GetString());
 				// end new stuff
 
 				//op::opLog(" ");
@@ -276,6 +275,9 @@ void configureWrapper(op::Wrapper& opWrapper)
 		// Set to single-thread (for sequential processing and/or debugging and/or reducing latency)
 		if (FLAGS_disable_multi_thread)
 			opWrapper.disableMultiThreading();
+
+		//init TCP Socket
+		socket_.init();
 	}
 	catch (const std::exception& e)
 	{
@@ -301,6 +303,7 @@ int tutorialApiCpp()
 
 		// Measuring total time
 		op::printTime(opTimer, "OpenPose demo successfully finished. Total time: ", " seconds.", op::Priority::High);
+
 
 		// Return
 		return 0;
