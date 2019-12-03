@@ -42,7 +42,11 @@ public:
 
 			std::string sendstr;
 
-			std::vector<persons> kpsData; //keypoint data
+
+			
+			//std::vector<persons> kpsData; //keypoint data
+
+			rootObj root_("root");
 
 			StringBuffer sb;
 			PrettyWriter<StringBuffer> writer(sb);
@@ -66,6 +70,11 @@ public:
 			// User's displaying/saving/other processing here
 				// datumPtr->cvOutputData: rendered frame with pose or heatmaps
 				// datumPtr->poseKeypoints: Array<float> with the estimated pose
+
+
+			root_.setFrame(capture_area(1280, 720)); //hardcoded -> TODO: MAKE IT DYNAMIC!!!
+
+
 			if (datumsPtr != nullptr && !datumsPtr->empty())
 			{
 				// Show in command line the resulting pose keypoints for body, face and hands
@@ -78,15 +87,24 @@ public:
 					//op::opLog("Person " + std::to_string(person) + " (x, y, score):");
 
 					//new stuff!
-					kpsData.push_back(persons("Person " + std::to_string(person))); 
+					//kpsData.push_back(persons("Person " + std::to_string(person))); 
+					root_.addPerson(persons("Person " + std::to_string(person)));				
 
-					kpsData.back().AddKeypoint(keypoint("left_hand", poseKeypoints[{person, 4, 0}], poseKeypoints[{person, 4, 1}], poseKeypoints[{person, 4, 2}]));
-					kpsData.back().AddKeypoint(keypoint("right_hand", poseKeypoints[{person, 7, 0}], poseKeypoints[{person, 7, 1}], poseKeypoints[{person, 7, 2}]));
-					kpsData.back().AddKeypoint(keypoint("root", poseKeypoints[{person, 8, 0}], poseKeypoints[{person, 8, 1}], poseKeypoints[{person, 8, 2}]));
-					kpsData.back().AddKeypoint(keypoint("left_shoulder", poseKeypoints[{person, 2, 0}], poseKeypoints[{person, 2, 1}], poseKeypoints[{person, 2, 2}]));
-					kpsData.back().AddKeypoint(keypoint("right_shoulder", poseKeypoints[{person, 5, 0}], poseKeypoints[{person, 5, 1}], poseKeypoints[{person, 5, 2}]));
-					kpsData.back().AddKeypoint(keypoint("left_ankle", poseKeypoints[{person, 11, 0}], poseKeypoints[{person, 11, 1}], poseKeypoints[{person, 11, 2}]));
-					kpsData.back().AddKeypoint(keypoint("right_ankle", poseKeypoints[{person, 14, 0}], poseKeypoints[{person, 14, 1}], poseKeypoints[{person, 14, 2}]));
+					root_.getLastPerson().AddKeypoint(keypoint("left_hand", poseKeypoints[{person, 4, 0}], poseKeypoints[{person, 4, 1}], poseKeypoints[{person, 4, 2}]));
+					root_.getLastPerson().AddKeypoint(keypoint("right_hand", poseKeypoints[{person, 7, 0}], poseKeypoints[{person, 7, 1}], poseKeypoints[{person, 7, 2}]));
+					root_.getLastPerson().AddKeypoint(keypoint("root", poseKeypoints[{person, 8, 0}], poseKeypoints[{person, 8, 1}], poseKeypoints[{person, 8, 2}]));
+					root_.getLastPerson().AddKeypoint(keypoint("left_shoulder", poseKeypoints[{person, 2, 0}], poseKeypoints[{person, 2, 1}], poseKeypoints[{person, 2, 2}]));
+					root_.getLastPerson().AddKeypoint(keypoint("right_shoulder", poseKeypoints[{person, 5, 0}], poseKeypoints[{person, 5, 1}], poseKeypoints[{person, 5, 2}]));
+					root_.getLastPerson().AddKeypoint(keypoint("left_ankle", poseKeypoints[{person, 11, 0}], poseKeypoints[{person, 11, 1}], poseKeypoints[{person, 11, 2}]));
+					root_.getLastPerson().AddKeypoint(keypoint("right_ankle", poseKeypoints[{person, 14, 0}], poseKeypoints[{person, 14, 1}], poseKeypoints[{person, 14, 2}]));
+
+					//kpsData.back().AddKeypoint(keypoint("left_hand", poseKeypoints[{person, 4, 0}], poseKeypoints[{person, 4, 1}], poseKeypoints[{person, 4, 2}]));
+					//kpsData.back().AddKeypoint(keypoint("right_hand", poseKeypoints[{person, 7, 0}], poseKeypoints[{person, 7, 1}], poseKeypoints[{person, 7, 2}]));
+					//kpsData.back().AddKeypoint(keypoint("root", poseKeypoints[{person, 8, 0}], poseKeypoints[{person, 8, 1}], poseKeypoints[{person, 8, 2}]));
+					//kpsData.back().AddKeypoint(keypoint("left_shoulder", poseKeypoints[{person, 2, 0}], poseKeypoints[{person, 2, 1}], poseKeypoints[{person, 2, 2}]));
+					//kpsData.back().AddKeypoint(keypoint("right_shoulder", poseKeypoints[{person, 5, 0}], poseKeypoints[{person, 5, 1}], poseKeypoints[{person, 5, 2}]));
+					//kpsData.back().AddKeypoint(keypoint("left_ankle", poseKeypoints[{person, 11, 0}], poseKeypoints[{person, 11, 1}], poseKeypoints[{person, 11, 2}]));
+					//kpsData.back().AddKeypoint(keypoint("right_ankle", poseKeypoints[{person, 14, 0}], poseKeypoints[{person, 14, 1}], poseKeypoints[{person, 14, 2}]));
 
 					//kpsData.back().AddKeypoint(keypoint("right_hand", 100, 150, 0.5));
 					//kpsData.back().AddKeypoint(keypoint("root", 100, 150, 0.5));
@@ -109,8 +127,10 @@ public:
 
 				// new stuff
 				writer.StartArray();
-				for (std::vector<persons>::const_iterator personsItr = kpsData.begin(); personsItr != kpsData.end(); ++personsItr)
-					personsItr->Serialize(writer);
+				//for (std::vector<persons>::const_iterator personsItr = kpsData.begin(); personsItr != kpsData.end(); ++personsItr)
+				//	personsItr->Serialize(writer);
+				root_.Serialize(writer);
+
 				writer.EndArray();
 
 				puts(sb.GetString());

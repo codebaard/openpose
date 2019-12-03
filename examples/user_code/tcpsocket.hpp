@@ -14,8 +14,8 @@
 
 
 #define DEFAULT_BUFLEN 512
-#define DEFAULT_PORT "4444"
-#define REMOTE_HOST "127.0.0.1"
+#define DEFAULT_PORT "3000"
+#define REMOTE_HOST "141.22.69.73"
 
 class tcpsocket {
 
