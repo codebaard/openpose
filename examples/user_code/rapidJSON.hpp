@@ -8,25 +8,28 @@
 class capture_area {
 public:
 	capture_area() {}
-	capture_area(unsigned width, unsigned height) : width_(width), height_(height) {}
+	capture_area(unsigned width, unsigned height, unsigned crop) : width_(width), height_(height), crop_(crop) {}
 	capture_area(const capture_area& rhs) : width_(rhs.width_), height_(rhs.height_) {}
 
 	capture_area& operator=(const capture_area& rhs) {
 		width_ = rhs.width_;
 		height_ = rhs.height_;
+		crop_ = rhs.crop_;
 		return *this;
 	}
 
-protected:
 	template <typename Writer>
 	void Serialize(Writer& writer) const {
 		writer.StartObject(); //prettyWriter
 
 		writer.String("width");
-		writer.Uint(width);
+		writer.Uint(width_);
 
 		writer.String("height");
-		writer.Uint(height);
+		writer.Uint(height_);
+
+		writer.String("crop");
+		writer.Uint(crop_);
 
 		writer.EndObject();
 	}
@@ -34,6 +37,7 @@ protected:
 private:
 	unsigned width_;
 	unsigned height_;
+	unsigned crop_;
 };
 
 class keypoint {
@@ -84,19 +88,20 @@ private:
 
 class persons {
 public:
-	persons(const std::string& designator) : designator_(designator) {}
-	//persons(const persons& rhs) : designator_(rhs.designator_), keypoints_(rhs.keypoints_) {}
-	persons(const persons& rhs) : designator_(rhs.designator_) {}
-	//persons(std::string designator);
+	persons(const std::string& designator) : designator_(designator) {} 
+	persons(const persons& rhs) : designator_(rhs.designator_) {} 
 
-	persons& operator=(const persons& rhs) {
+	persons& operator=(persons& rhs) { 
+		//static_cast<persons&>(*this) = rhs;
 		designator_ = rhs.designator_;
+		return *this;
 	}
 
 	void AddKeypoint(const keypoint& keypoint) {
 		keypoints_.push_back(keypoint);
 
 	}
+
 		template <typename Writer>
 		void Serialize(Writer& writer) const {
 			writer.StartObject(); //prettyWriter
@@ -140,7 +145,7 @@ public:
 		capture_area_ = frame;
 	}
 
-	void addPerson(const persons& person) {
+	void addPerson(const persons& person) { //former with const
 		persons_.push_back(person);
 	}
 
@@ -151,19 +156,18 @@ public:
 	template <typename Writer>
 	void Serialize(Writer& writer) const {
 		writer.StartObject();
-
-		writer.String("root");
-
-#if RAPIDJSON_HAS_STDSTRING
-		writer.String(designator_);
-#else
-		writer.String(designator_.c_str(), static_cast<SizeType>(designator_.length()));
-#endif
+//
+//		writer.String("root");
+//
+//#if RAPIDJSON_HAS_STDSTRING
+//		writer.String(designator_);
+//#else
+//		writer.String(designator_.c_str(), static_cast<SizeType>(designator_.length()));
+//#endif
 
 		writer.String("capture area");
 
-		writer.Uint(capture_area_.width_);
-		writer.Uint(capture_area_.height_);
+		capture_area_.Serialize(writer);
 
 //#if RAPIDJSON_HAS_STDSTRING
 //		writer.String(capture_area_);
@@ -172,8 +176,9 @@ public:
 //#endif
 
 		//persons!
+		writer.String(("persons"));
 		writer.StartArray();
-		for (std::vector<persons>::const_iterator personsItr = persons_.begin(); personstItr != persons_.end(); ++personstItr)
+		for (std::vector<persons>::const_iterator personsItr = persons_.begin(); personsItr != persons_.end(); ++personsItr)
 			personsItr->Serialize(writer);
 		writer.EndArray();
 

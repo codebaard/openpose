@@ -72,7 +72,7 @@ public:
 				// datumPtr->poseKeypoints: Array<float> with the estimated pose
 
 
-			root_.setFrame(capture_area(1280, 720)); //hardcoded -> TODO: MAKE IT DYNAMIC!!!
+			root_.setFrame(capture_area(1280, 720, 320)); //hardcoded -> TODO: MAKE IT DYNAMIC!!!
 
 
 			if (datumsPtr != nullptr && !datumsPtr->empty())
@@ -126,12 +126,13 @@ public:
 				}
 
 				// new stuff
-				writer.StartArray();
+				//writer.StartArray();
+				//writer.StartObject();
 				//for (std::vector<persons>::const_iterator personsItr = kpsData.begin(); personsItr != kpsData.end(); ++personsItr)
 				//	personsItr->Serialize(writer);
 				root_.Serialize(writer);
 
-				writer.EndArray();
+				//writer.EndArray();
 
 				puts(sb.GetString());
 
