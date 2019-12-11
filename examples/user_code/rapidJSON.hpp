@@ -2,8 +2,10 @@
 #include <cstdio>
 #include <string>
 #include <vector>
+#include <chrono>
 
 //using namespace rapidjson;
+using namespace std::chrono;
 
 class capture_area {
 public:
@@ -38,6 +40,48 @@ private:
 	unsigned width_;
 	unsigned height_;
 	unsigned crop_;
+};
+
+class timestamp {
+public:
+	timestamp(){}
+	timestamp(const std::string& designator, long long msTime) : designator_(designator), msTime_(msTime) {}
+	timestamp(const timestamp& rhs) : designator_(rhs.designator_), msTime_(rhs.msTime_) {}
+
+	timestamp& operator=(const timestamp& rhs) {
+		designator_ = rhs.designator_;
+		msTime_ = rhs.msTime_;
+		return *this;
+	}
+
+	template<typename Writer>
+	void Serialize(Writer& writer) const {
+		writer.StartObject();
+
+		writer.String("Type");
+#if RAPIDJSON_HAS_STDSTRING
+		writer.String(designator_);
+#else
+		writer.String(designator_.c_str(), static_cast<SizeType>(designator_.length()));
+#endif
+		writer.String("Timestamp");
+		writer.Uint(msTime_);
+
+		writer.EndObject();
+	}
+
+	void giveTimeInMilliseconds() {
+		milliseconds ms = duration_cast<milliseconds>(
+			system_clock::now().time_since_epoch()
+			);
+		msTime_ = ms.count();
+	}
+
+
+private:
+	std::string designator_;
+	long long msTime_;
+
 };
 
 class keypoint {
@@ -89,7 +133,8 @@ private:
 class persons {
 public:
 	persons(const std::string& designator) : designator_(designator) {} 
-	persons(const persons& rhs) : designator_(rhs.designator_) {} 
+	persons(const persons& rhs) : designator_(rhs.designator_), keypoints_(rhs.keypoints_) {} 
+	virtual ~persons();
 
 	persons& operator=(persons& rhs) { 
 		//static_cast<persons&>(*this) = rhs;
@@ -99,7 +144,7 @@ public:
 
 	void AddKeypoint(const keypoint& keypoint) {
 		keypoints_.push_back(keypoint);
-
+		//keypoints_[i] = &keypoint;
 	}
 
 		template <typename Writer>
@@ -127,7 +172,9 @@ public:
 private:
 	std::string designator_;
 	std::vector<keypoint> keypoints_;
+	//std::vector<keypoint> keypoints_(7);
 };
+persons::~persons() {}
 
 class rootObj {
 public:
@@ -137,12 +184,20 @@ public:
 	rootObj(const std::string& designator) : designator_(designator) {}
 	rootObj(const rootObj& rhs) : designator_(rhs.designator_) {}
 
+	
+
 	rootObj& operator=(const rootObj& rhs) {
 		designator_ = rhs.designator_;
 	}
 
 	void setFrame(const capture_area& frame) {
 		capture_area_ = frame;
+	}
+
+	void addTimestamp(const timestamp& timestamp) {
+		timestamp_.giveTimeInMilliseconds(); //create the timestamp
+		//timestamp_ = timestamp;
+		//timestamp_ = ms.count;
 	}
 
 	void addPerson(const persons& person) { //former with const
@@ -164,6 +219,10 @@ public:
 //#else
 //		writer.String(designator_.c_str(), static_cast<SizeType>(designator_.length()));
 //#endif
+		//timestamp_.giveTimeInMilliseconds();
+		writer.String("Timestamp");
+
+		timestamp_.Serialize(writer);
 
 		writer.String("capture area");
 
@@ -186,7 +245,9 @@ public:
 	}
 
 private:
+	std::vector<persons> persons_;
 	std::string designator_;
 	capture_area capture_area_;
-	std::vector<persons> persons_;
+	timestamp timestamp_;
+
 };

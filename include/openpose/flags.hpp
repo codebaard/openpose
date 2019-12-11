@@ -16,10 +16,10 @@
 // Note: This command will show you flags for other unnecessary 3rdparty files. Check only the flags for the OpenPose
 // executable. E.g., for `openpose.bin`, look for `Flags from examples/openpose/openpose.cpp:`.
 // Debugging/Other
-DEFINE_int32(logging_level,             3,              "The logging level. Integer in the range [0, 255]. 0 will output any opLog() message,"
+DEFINE_int32(logging_level,             4,              "The logging level. Integer in the range [0, 255]. 0 will output any opLog() message," //was 3
                                                         " while 255 will not output any. Current OpenPose library messages are in the range 0-4:"
                                                         " 1 for low priority messages and 4 for important ones.");
-DEFINE_bool(disable_multi_thread,       false,          "It would slightly reduce the frame rate in order to highly reduce the lag. Mainly useful"
+DEFINE_bool(disable_multi_thread,       false,          "It would slightly reduce the frame rate in order to highly reduce the lag. Mainly useful" //was false
                                                         " for 1) Cases where it is needed a low latency (e.g., webcam in real-time scenarios with"
                                                         " low-range GPU devices); and 2) Debugging OpenPose when it is crashing to locate the"
                                                         " error.");
@@ -28,9 +28,9 @@ DEFINE_int32(profile_speed,             1000,           "If PROFILER_ENABLED was
 #ifndef OPENPOSE_FLAGS_DISABLE_POSE
 #ifndef OPENPOSE_FLAGS_DISABLE_PRODUCER
 // Producer
-DEFINE_int32(camera,                    -1,             "The camera index for cv::VideoCapture. Integer in the range [0, 9]. Select a negative"
+DEFINE_int32(camera,                    -1,             "The camera index for cv::VideoCapture. Integer in the range [0, 9]. Select a negative" //was -1
                                                         " number (by default), to auto-detect and open the first available camera.");
-DEFINE_string(camera_resolution,        "-1x-1",        "Set the camera resolution (either `--camera` or `--flir_camera`). `-1x-1` will use the"
+DEFINE_string(camera_resolution,        "1280x720",        "Set the camera resolution (either `--camera` or `--flir_camera`). `-1x-1` will use the" //was -1x-1
                                                         " default 1280x720 for `--camera`, or the maximum flir camera resolution available for"
                                                         " `--flir_camera`");
 DEFINE_string(video,                    "",             "Use a video file instead of the camera. Use `examples/media/video.avi` for our default"

@@ -16,6 +16,8 @@
 #include <cstdio>
 #include <string>
 #include <vector>
+#include <time.h>
+#include <chrono>
 
 
 // Custom OpenPose flags
@@ -23,9 +25,23 @@
 DEFINE_bool(no_display, false,
 	"Enable to disable the visual display.");
 
+//DEFINE_string(camera_resolution, "1920x1080", "Set the camera resolution (either `--camera` or `--flir_camera`). `-1x-1` will use the"
+//	" default 1280x720 for `--camera`, or the maximum flir camera resolution available for"
+//	" `--flir_camera`");
+
+//DEFINE_int32(camera, 2, "The camera index for cv::VideoCapture. Integer in the range [0, 9]. Select a negative"
+//	" number (by default), to auto-detect and open the first available camera.");
+
+//DEFINE_int32(logging_level, 4, "The logging level. Integer in the range [0, 255]. 0 will output any opLog() message,"
+//	" while 255 will not output any. Current OpenPose library messages are in the range 0-4:"
+//	" 1 for low priority messages and 4 for important ones.");
+
 using namespace rapidjson;
+using namespace std::chrono;
 
 tcpsocket socket_;
+
+time_t ltime;
 
 // This worker will just read and return all the jpg files in a directory
 class WUserOutput : public op::WorkerConsumer<std::shared_ptr<std::vector<std::shared_ptr<op::Datum>>>>
@@ -88,7 +104,8 @@ public:
 
 					//new stuff!
 					//kpsData.push_back(persons("Person " + std::to_string(person))); 
-					root_.addPerson(persons("Person " + std::to_string(person)));				
+
+					root_.addPerson(persons("Person " + std::to_string(person)));
 
 					root_.getLastPerson().AddKeypoint(keypoint("left_hand", poseKeypoints[{person, 4, 0}], poseKeypoints[{person, 4, 1}], poseKeypoints[{person, 4, 2}]));
 					root_.getLastPerson().AddKeypoint(keypoint("right_hand", poseKeypoints[{person, 7, 0}], poseKeypoints[{person, 7, 1}], poseKeypoints[{person, 7, 2}]));
@@ -130,6 +147,12 @@ public:
 				//writer.StartObject();
 				//for (std::vector<persons>::const_iterator personsItr = kpsData.begin(); personsItr != kpsData.end(); ++personsItr)
 				//	personsItr->Serialize(writer);
+				time(&ltime);
+
+				//root_.addTimestamp(timestamp("Unixtime", (long long)ltime));
+				//root_.addTimestamp(timestamp("ms since system startup", GetTickCount()));
+				root_.addTimestamp(timestamp("ms since system startup", 0));
+				//root_.addTimestamp(timestamp("ms since system startup", ms));
 				root_.Serialize(writer);
 
 				//writer.EndArray();
@@ -212,6 +235,7 @@ void configureWrapper(op::Wrapper& opWrapper)
 			FLAGS_flir_camera, FLAGS_flir_camera_index);
 		// cameraSize
 		const auto cameraSize = op::flagsToPoint(op::String(FLAGS_camera_resolution), "-1x-1");
+		//const auto cameraSize = op::flagsToPoint(op::String(FLAGS_camera_resolution), "1920x1080");
 		// outputSize
 		const auto outputSize = op::flagsToPoint(op::String(FLAGS_output_resolution), "-1x-1");
 		// netInputSize

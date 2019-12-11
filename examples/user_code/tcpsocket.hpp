@@ -13,9 +13,10 @@
 #pragma comment (lib, "AdvApi32.lib")
 
 
-#define DEFAULT_BUFLEN 512
+#define DEFAULT_BUFLEN 4096
 #define DEFAULT_PORT "3000"
-#define REMOTE_HOST "141.22.69.73"
+#define REMOTE_HOST "141.22.72.134"
+//#define REMOTE_HOST "127.0.0.1"
 
 class tcpsocket {
 
